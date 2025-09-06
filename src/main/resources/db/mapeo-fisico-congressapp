@@ -1,0 +1,297 @@
+#Mapeo Fisico de la base de datos CongressApp
+
+#Autenticacion de usuario en sql
+mysql -u admindba -p 
+
+#Creacion de la base de datos
+
+CREATE DATABASE congressappdb;
+
+#Acceder hacia la base de datos desde la terminal
+USE congressappdb;
+
+#Tabla para poder gestionar las configuraciones de la web
+
+CREATE TABLE configuracion(
+
+codigo INT NOT NULL,
+porcentaje DECIMAL(5,2) NOT NULL,
+monto_comision DECIMAL(12,2) NOT NULL,
+
+CONSTRAINT pk_configuracion PRIMARY KEY (codigo)
+
+);
+
+#Tabla para gestionar a los usuarios administradores de la web
+
+CREATE TABLE usuario_admin (
+
+correo_electronico VARCHAR(120) NOT NULL,
+nombre VARCHAR(130) NOT NULL,
+password VARCHAR(140) NOT NULL,
+estado BOOLEAN NOT NULL, 
+declaracion BOOLEAN NOT NULL,
+identificacion VARCHAR(100) NOT NULL, 
+
+CONSTRAINT pk_usuario_admin PRIMARY KEY (correo_electronico)
+);
+
+#Tabla para poder gestionar las instituciones de la web
+
+CREATE TABLE institucion(
+
+codigo VARCHAR(20) NOT NULL,
+nombre VARCHAR(100) NOT NULL,
+pais VARCHAR(60) NOT NULL,
+descripcion VARCHAR(150) NOT NULL,
+
+CONSTRAINT pk_institucion PRIMARY KEY (codigo)
+
+);
+
+#Tabla para poder gestionar los congresos de la web
+
+CREATE TABLE congreso(
+
+codigo VARCHAR(20) NOT NULL,
+nombre VARCHAR(100) NOT NULL,
+precio DECIMAL(10,2) NOT NULL,
+ubicacion VARCHAR(80) NOT NULL,
+descripcion VARCHAR(180) NOT NULL, 
+
+fecha_inicio DATE NOT NULL, 
+fecha_fin DATE NOT NULL,
+
+cupo_maximo INT NOT NULL,
+
+estado_convocatoria BOOLEAN NOT NULL,
+
+codigo_institucion VARCHAR(20) NOT NULL,
+
+CONSTRAINT pk_congreso PRIMARY KEY (codigo),
+
+CONSTRAINT fk_congreso_institucion FOREIGN KEY (codigo_institucion) REFERENCES institucion(codigo)
+
+);
+
+
+#Tabla para poder gestionar los administradores de congreso de la web
+
+CREATE TABLE admin_congreso(
+
+correo_electronico VARCHAR(120) NOT NULL,
+nombre VARCHAR(130) NOT NULL,
+password VARCHAR(140) NOT NULL,
+estado BOOLEAN NOT NULL, 
+identificacion VARCHAR(100) NOT NULL, 
+
+codigo_institucion VARCHAR(20) NOT NULL,
+codigo_congreso VARCHAR(20) NOT NULL,
+
+CONSTRAINT pk_admin_congreso PRIMARY KEY (correo_electronico),
+
+CONSTRAINT fk_admin_congreso_institucion FOREIGN KEY (codigo_institucion) REFERENCES institucion(codigo),
+CONSTRAINT fk_admin_congreso_congreso FOREIGN KEY (codigo_congreso) REFERENCES congreso(codigo)
+
+);
+
+
+#Tabla para poder gestionar los usuarios registrados de la web
+
+CREATE TABLE usuario(
+
+correo VARCHAR(120) NOT NULL,
+foto LONGBLOB NOT NULL,
+nombre VARCHAR(130) NOT NULL,
+password VARCHAR(140) NOT NULL,
+estado BOOLEAN NOT NULL, 
+
+telefono VARCHAR(25) NOT NULL, 
+
+dinero DECIMAL(10,2) NOT NULL, 
+
+rol VARCHAR(30) NOT NULL, 
+
+organizacion VARCHAR(100) NOT NULL,	
+
+identificacion VARCHAR(100) NOT NULL, 
+
+
+CONSTRAINT pk_usuario PRIMARY KEY (correo)
+
+);
+
+
+#Tabla para poder gestionar los salones registrados en los congresos de la web
+
+CREATE TABLE salon(
+
+numero INT NOT NULL,
+nombre VARCHAR(130) NOT NULL,
+ubicacion VARCHAR(140) NOT NULL,
+cupo_maximo INT NOT NULL, 
+
+codigo_congreso VARCHAR(20) NOT NULL,
+
+CONSTRAINT pk_salon PRIMARY KEY (numero),
+
+CONSTRAINT fk_salon_congreso FOREIGN KEY (codigo_congreso) REFERENCES congreso(codigo)
+
+);
+
+
+#Tabla para poder gestionar las actividades de congreso de la web
+
+CREATE TABLE actividad(
+
+codigo VARCHAR(20) NOT NULL,
+nombre VARCHAR(130) NOT NULL,
+descripcion VARCHAR(180) NOT NULL, 
+tipo VARCHAR(20) NOT NULL,
+cupo_maximo VARCHAR(25) NOT NULL,
+
+hora_inicio TIME NOT NULL, 
+hora_fin TIME NOT NULL,
+
+
+numero_salon INT NOT NULL,
+codigo_congreso VARCHAR(20) NOT NULL,
+
+CONSTRAINT pk_actividad PRIMARY KEY (codigo),
+
+
+CONSTRAINT fk_actividad_congreso FOREIGN KEY (codigo_congreso) REFERENCES congreso(codigo),
+CONSTRAINT fk_actividad_salon FOREIGN KEY (numero_salon) REFERENCES salon(numero)
+
+);
+
+
+#Tabla para poder gestionar las participaciones de los usuarios en las actividades
+
+CREATE TABLE participacion(
+
+codigo INT NOT NULL AUTO_INCREMENT,
+
+numero_reservacion INT NOT NULL,
+
+correo_usuario VARCHAR(120) NOT NULL,
+
+codigo_congreso VARCHAR(20) NOT NULL,
+
+codigo_actividad VARCHAR(20) NOT NULL,
+
+CONSTRAINT pk_participacion PRIMARY KEY (codigo),
+
+CONSTRAINT fk_participacion_usuario FOREIGN KEY (correo_usuario) REFERENCES usuario(correo),
+
+CONSTRAINT fk_participacion_congreso FOREIGN KEY (codigo_congreso) REFERENCES congreso(codigo),
+
+CONSTRAINT fk_participacion_actividad FOREIGN KEY (codigo_actividad) REFERENCES actividad(codigo)
+
+);
+
+
+#Tabla para poder gestionar los trabajos que se proponen en el congreso de la web
+
+CREATE TABLE trabajo(
+
+titulo VARCHAR(100) NOT NULL,
+tipo VARCHAR(20) NOT NULL,
+descripcion VARCHAR(180) NOT NULL, 
+
+estado BOOLEAN NOT NULL,
+cupo_sugerido INT NOT NULL,
+
+correo_usuario VARCHAR(120) NOT NULL,
+
+codigo_congreso VARCHAR(20) NOT NULL,
+
+CONSTRAINT fk_trabajo_usuario FOREIGN KEY (correo_usuario) REFERENCES usuario(correo),
+
+CONSTRAINT fk_trabajo_congreso FOREIGN KEY (codigo_congreso) REFERENCES congreso(codigo)
+
+);
+
+
+#Tabla para poder gestionar las asistencias que se registran de las actividades
+
+CREATE TABLE asistencia(
+
+nombre_actividad VARCHAR(130) NOT NULL,
+tipo_actividad VARCHAR(20) NOT NULL,
+numero_registro INT NOT NULL,
+
+correo_usuario VARCHAR(120) NOT NULL,
+
+codigo_congreso VARCHAR(20) NOT NULL,
+
+CONSTRAINT fk_asistencia_usuario FOREIGN KEY (correo_usuario) REFERENCES usuario(correo),
+
+CONSTRAINT fk_asistencia_congreso FOREIGN KEY (codigo_congreso) REFERENCES congreso(codigo)
+
+);
+
+
+#Tabla para poder gestionar las inscripciones hacia los congresos de la web
+
+CREATE TABLE inscripcion(
+
+codigo VARCHAR(25) NOT NULL,
+
+estado BOOLEAN NOT NULL,
+
+monto DECIMAL(10,2) NOT NULL,
+
+correo_usuario VARCHAR(120) NOT NULL,
+
+codigo_congreso VARCHAR(20) NOT NULL,
+
+CONSTRAINT pk_actividad PRIMARY KEY (codigo),
+
+CONSTRAINT fk_inscripcion_usuario FOREIGN KEY (correo_usuario) REFERENCES usuario(correo),
+
+CONSTRAINT fk_inscripcion_congreso FOREIGN KEY (codigo_congreso) REFERENCES congreso(codigo)
+
+);
+
+
+#Tabla para poder gestionar el pago de las inscripciones hacia los congresos de la web
+
+CREATE TABLE pago(
+
+codigo_inscripcion VARCHAR(25) NOT NULL,
+
+monto DECIMAL(10,2) NOT NULL,
+
+
+CONSTRAINT fk_pago_inscripcion FOREIGN KEY (codigo_inscripcion) REFERENCES inscripcion(codigo)
+
+);
+
+
+#Tabla para poder gestionar los certificados que se registran en base a las asistencias
+
+CREATE TABLE certificado(
+
+correo_usuario VARCHAR(120) NOT NULL,
+
+codigo_congreso VARCHAR(20) NOT NULL,
+
+CONSTRAINT fk_certificado_usuario FOREIGN KEY (correo_usuario) REFERENCES usuario(correo),
+
+CONSTRAINT fk_certificado_congreso FOREIGN KEY (codigo_congreso) REFERENCES congreso(codigo)
+
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
